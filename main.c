@@ -38,6 +38,6 @@ int main()
     char grid[Rows][Cols];
     Gridbuilder(grid);
     printGrid(grid);
-
+    isValid();
     return 0;
 }
