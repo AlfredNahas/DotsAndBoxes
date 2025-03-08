@@ -4,6 +4,13 @@
 #define ROWS 5
 #define COLUMNS 6
 
+typedef struct {
+    char grid[ROWS][COLUMNS];
+    char currentPlayer;
+    
+} State;
+
+
 bool isValidLine(int x1, int y1, int x2, int y2, char grid[ROWS][COLUMNS]) { 
     int row1 = 2 * x1, col1 = 2 * y1;
     int row2 = 2 * x2, col2 = 2 * y2;
@@ -30,4 +37,12 @@ bool isValidLine(int x1, int y1, int x2, int y2, char grid[ROWS][COLUMNS]) {
         }
     }
     return false;  
+}
+
+void switchPlayer(State *game) {
+    if (game->currentPlayer == 'A') {
+        game->currentPlayer = 'B';
+    } else {
+        game->currentPlayer = 'A';
+    }
 }
