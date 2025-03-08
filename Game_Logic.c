@@ -29,6 +29,5 @@ bool isValidLine(int x1, int y1, int x2, int y2, char grid[ROWS][COLUMNS]) {
             return true;  
         }
     }
-
     return false;  
 }
