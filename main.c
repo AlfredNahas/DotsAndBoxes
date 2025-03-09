@@ -17,6 +17,25 @@ typedef struct
 
 } State;
 
+void initializeGame(State *game) {
+    for (int i = 0; i < ROWS; i++) {
+        for (int j = 0; j < COLUMNS; j++) {
+            game->grid[i][j] = ' ';
+        }
+    }
+    
+    for (int i = 0; i < ROWS; i += 2) {
+        for (int j = 0; j < COLUMNS; j += 2) {
+            game->grid[i][j] = '.';
+        }
+    }
+    
+    game->currentPlayer = 'A';
+    game->scoreA = 0;
+    game->scoreB = 0;
+    game->completedBoxes = 0;
+}
+
 bool isValidLine(int x1, int y1, int x2, int y2, char grid[ROWS][COLUMNS])
 {
     int row1 = 2 * x1, col1 = 2 * y1;
@@ -160,6 +179,47 @@ bool checkForCompletedBoxes(State *game, int x1, int y1, int x2, int y2) {
     }
     
     return boxCompleted;
+}
+
+void placeLine(State *game, int x1, int y1, int x2, int y2) {
+    int row1 = 2 * x1, col1 = 2 * y1;
+    int row2 = 2 * x2, col2 = 2 * y2;
+    
+    int midRow = (row1 + row2) / 2;
+    int midCol = (col1 + col2) / 2;
+    
+    if (row1 == row2) {
+        game->grid[midRow][midCol] = '-';
+    } else {
+        game->grid[midRow][midCol] = '|';
+    }
+}
+
+void displayGrid(State *game) {
+    printf("\nScore: Player A: %d, Player B: %d\n\n", game->scoreA, game->scoreB);
+
+    printf("  ");
+    for (int j = 0; j < COLUMNS; j++) {
+        if (j % 2 == 0) {
+            printf("%d ", j / 2);
+        } else {
+            printf("  ");
+        }
+    }
+    printf("\n");
+
+    for (int i = 0; i < ROWS; i++) {
+        if (i % 2 == 0) {
+            printf("%d ", i / 2);
+        } else {
+            printf("  ");
+        }
+        for (int j = 0; j < COLUMNS; j++) {
+            printf("%c ", game->grid[i][j]);
+        }
+        printf("\n");
+    }
+    printf("\n");
 }
 
 
