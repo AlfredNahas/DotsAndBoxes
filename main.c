@@ -223,9 +223,52 @@ void displayGrid(State *game) {
 }
 
 
-
-
 int main()
 {
+    State game;
+    initializeGame(&game);
+    
+    int x1, y1, x2, y2;
+    bool gameRunning = true;
+    
+    printf("=== DOTS AND BOXES ===\n");
+    
+    while (gameRunning) {
+        displayGrid(&game);
+        
+        printf("Player %c's turn\n", game.currentPlayer);
+        printf("Enter coordinates (x1 y1 x2 y2): ");
+        scanf("%d %d %d %d", &x1, &y1, &x2, &y2);
+        
+        if (isValidLine(x1, y1, x2, y2, game.grid)) {
+            placeLine(&game, x1, y1, x2, y2);
+            
+            bool boxCompleted = checkForCompletedBoxes(&game, x1, y1, x2, y2);
+            
+            if (!boxCompleted) {
+                switchPlayer(&game);
+            }
+            
+            if (isGameOver(&game)) {
+                displayGrid(&game);
+                printf("=== GAME OVER ===\n");
+                printf("Final Score: Player A: %d, Player B: %d\n", game.scoreA, game.scoreB);
+                
+                if (game.scoreA > game.scoreB) {
+                    printf("Player A wins!\n");
+                } else if (game.scoreB > game.scoreA) {
+                    printf("Player B wins!\n");
+                } else {
+                    printf("It's a tie!\n");
+                }
+                
+                gameRunning = false;
+            }
+        } else {
+            printf("Invalid move. Try again.\n");
+        }
+    }
 
+    return 0;
 }
+
