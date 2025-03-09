@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": true,
-      "cwd": "c:/Users/user/OneDrive - American University of Beirut/Desktop/GitHub/DotsAndBoxes",
-      "program": "c:/Users/user/OneDrive - American University of Beirut/Desktop/GitHub/DotsAndBoxes/build/Debug/outDebug",
+      "cwd": "c:/Users/jadop/OneDrive/Desktop/CMPS/CMPS 270 project/DotsAndBoxes",
+      "program": "c:/Users/jadop/OneDrive/Desktop/CMPS/CMPS 270 project/DotsAndBoxes/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [
