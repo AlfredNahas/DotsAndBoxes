@@ -1,33 +1,32 @@
 #include <stdio.h>
 #define ROWS 4
 #define COLS 5
-void printGrid(int hLines[ROWS][COLS - 1], int vLines[ROWS - 1][COLS], char boxes[ROWS - 1][COLS - 1])
-{
-    for (int i = 0; i < ROWS; i++)
-    {
-        // Print dots and horizontal lines
-        for (int j = 0; j < COLS; j++)
-        {
-            printf("● ");
-            if (j < COLS - 1)
-            {
-                printf("%s ", hLines[i][j] ? "---" : "   ");
-            }
-        }
-        printf("\n");
-        if (i < ROWS - 1)
-        {
-            for (int j = 0; j < COLS; j++)
-            {
-                printf("%s ", vLines[i][j] ? "|" : " ");
-                if (j < COLS - 1)
-                {
-                    printf(" %c ", boxes[i][j] ? boxes[i][j] : ' ');
-                }
-            }
-            printf("\n");
+
+void displayGrid(State *game) {
+    printf("\nScore: Player A: %d, Player B: %d\n\n", game->scoreA, game->scoreB);
+
+    printf("  ");
+    for (int j = 0; j < COLUMNS; j++) {
+        if (j % 2 == 0) {
+            printf("%d ", j / 2);
+        } else {
+            printf("  ");
         }
     }
+    printf("\n");
+
+    for (int i = 0; i < ROWS; i++) {
+        if (i % 2 == 0) {
+            printf("%d ", i / 2);
+        } else {
+            printf("  ");
+        }
+        for (int j = 0; j < COLUMNS; j++) {
+            printf("%c ", game->grid[i][j]);
+        }
+        printf("\n");
+    }
+    printf("\n");
 }
 void checkBoxes(int hLines[ROWS][COLS - 1], int vLines[ROWS - 1][COLS], char boxes[ROWS - 1][COLS - 1], char player)
 {
