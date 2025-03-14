@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <time.h>
 
 #define ROWS 9
 #define COLUMNS 11
@@ -17,9 +18,11 @@ typedef struct {
     int scoreA;
     int scoreB;
     int drawnLines; 
+    bool botMode;     
+    char botPlayer;  
 } State;
 
-void initializeGame(State *game) {
+void initializeGame(State *game, bool botMode, char botPlayer) {
     for (int i = 0; i < ROWS; i++) {
         for (int j = 0; j < COLUMNS; j++) {
             game->grid[i][j] = ' ';
@@ -37,6 +40,8 @@ void initializeGame(State *game) {
     game->scoreB = 0;
     game->completedBoxes = 0;
     game->drawnLines = 0;
+    game->botMode = botMode;        
+    game->botPlayer = botPlayer;   
 }
 
 bool isValidLine(int x1, int y1, int x2, int y2, char grid[ROWS][COLUMNS]) {
@@ -209,48 +214,138 @@ void displayGrid(State *game) {
     printf("\n");
 }
 
+
+bool makeBotMove(State *game) {
+ 
+    int maxPossibleMoves = TOTAL_LINES;
+    int (*validMoves)[4] = malloc(maxPossibleMoves * sizeof(*validMoves)); 
+    int validMoveCount = 0;
+    
+    
+    for (int x1 = 0; x1 < DOT_ROWS; x1++) {
+        for (int y1 = 0; y1 < DOT_COLS; y1++) {
+            
+            if (y1 < DOT_COLS - 1) {
+                int x2 = x1;
+                int y2 = y1 + 1;
+                if (isValidLine(x1, y1, x2, y2, game->grid)) {      //for horisontal lines
+                    validMoves[validMoveCount][0] = x1;
+                    validMoves[validMoveCount][1] = y1;
+                    validMoves[validMoveCount][2] = x2;
+                    validMoves[validMoveCount][3] = y2;
+                    validMoveCount++;
+                }
+            }
+            
+           
+            if (x1 < DOT_ROWS - 1) {
+                int x2 = x1 + 1;
+                int y2 = y1;
+                if (isValidLine(x1, y1, x2, y2, game->grid)) {
+                    validMoves[validMoveCount][0] = x1;
+                    validMoves[validMoveCount][1] = y1;           //for vertical lines      
+                    validMoves[validMoveCount][2] = x2;
+                    validMoves[validMoveCount][3] = y2;
+                    validMoveCount++;
+                }
+            }
+        }
+    }
+    
+    
+    if (validMoveCount > 0) {
+        int randomIndex = rand() % validMoveCount;
+        int x1 = validMoves[randomIndex][0];
+        int y1 = validMoves[randomIndex][1];
+        int x2 = validMoves[randomIndex][2];
+        int y2 = validMoves[randomIndex][3];
+        
+        printf("Bot (%c) chooses: %d %d %d %d\n", game->currentPlayer, x1, y1, x2, y2);
+        
+        placeLine(game, x1, y1, x2, y2);
+        
+        bool boxCompleted = checkForCompletedBoxes(game, x1, y1, x2, y2);
+        
+        if (!boxCompleted) {
+            switchPlayer(game);
+        }
+        
+        free(validMoves);
+        return true;
+    }
+    
+    free(validMoves);
+    return false;
+}
+
 int main() {
     State game;
-    initializeGame(&game);
-
+    int gameMode;
+    char botPlayer;
+    bool botMode = false;
+    
+    srand(time(NULL));
+    
+    printf("=== DOTS AND BOXES ===\n");
+    printf("1. Human vs. Human\n");
+    printf("2. Human vs. Bot\n");
+    printf("Select game mode (1-2): ");
+    scanf("%d", &gameMode);
+    
+    if (gameMode == 2) {
+        botMode = true;
+        printf("Choose who plays first:\n");
+        printf("1. You play as Player A\n");
+        printf("2. Bot plays as Player A\n");
+        printf("Select (1-2): ");
+        int choice;
+        scanf("%d", &choice);
+        botPlayer = (choice == 1) ? 'B' : 'A';
+    }
+    
+    initializeGame(&game, botMode, botPlayer);
+    
     int x1, y1, x2, y2;
     bool gameRunning = true;
 
-    printf("=== DOTS AND BOXES ===\n");
-
     while (gameRunning) {
         displayGrid(&game);
-
-        printf("Player %c's turn\n", game.currentPlayer);
-        printf("Enter coordinates (x1 y1 x2 y2): ");
-        scanf("%d %d %d %d", &x1, &y1, &x2, &y2);
-
-        if (isValidLine(x1, y1, x2, y2, game.grid)) {
-            placeLine(&game, x1, y1, x2, y2);
-
-            bool boxCompleted = checkForCompletedBoxes(&game, x1, y1, x2, y2);
-
-            if (!boxCompleted) {
-                switchPlayer(&game);
-            }
-
-            if (isGameOver(&game)) {
-                displayGrid(&game);
-                printf("=== GAME OVER ===\n");
-                printf("Final Score: Player A: %d, Player B: %d\n", game.scoreA, game.scoreB);
-
-                if (game.scoreA > game.scoreB) {
-                    printf("Player A wins!\n");
-                } else if (game.scoreB > game.scoreA) {
-                    printf("Player B wins!\n");
-                } else {
-                    printf("It's a tie!\n");
-                }
-
-                gameRunning = false;
-            }
+        
+        if (game.botMode && game.currentPlayer == game.botPlayer) {
+            printf("Bot's turn (Player %c)\n", game.currentPlayer);
+            makeBotMove(&game);
         } else {
-            printf("Invalid move. Try again.\n");
+            printf("Player %c's turn\n", game.currentPlayer);
+            printf("Enter coordinates (x1 y1 x2 y2): ");
+            scanf("%d %d %d %d", &x1, &y1, &x2, &y2);
+
+            if (isValidLine(x1, y1, x2, y2, game.grid)) {
+                placeLine(&game, x1, y1, x2, y2);
+
+                bool boxCompleted = checkForCompletedBoxes(&game, x1, y1, x2, y2);
+
+                if (!boxCompleted) {
+                    switchPlayer(&game);
+                }
+            } else {
+                printf("Invalid move. Try again.\n");
+            }
+        }
+
+        if (isGameOver(&game)) {
+            displayGrid(&game);
+            printf("=== GAME OVER ===\n");
+            printf("Final Score: Player A: %d, Player B: %d\n", game.scoreA, game.scoreB);
+
+            if (game.scoreA > game.scoreB) {
+                printf("Player A wins!\n");
+            } else if (game.scoreB > game.scoreA) {
+                printf("Player B wins!\n");
+            } else {
+                printf("It's a tie!\n");
+            }
+
+            gameRunning = false;
         }
     }
 
