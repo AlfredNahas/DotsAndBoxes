@@ -20,9 +20,18 @@ typedef struct {
     int drawnLines; 
     bool botMode;     
     char botPlayer;  
+    char botDifficulty; 
 } State;
 
-void initializeGame(State *game, bool botMode, char botPlayer) {
+void copyGrid(char source[ROWS][COLUMNS], char dest[ROWS][COLUMNS]) {
+    for (int i = 0; i < ROWS; i++) {
+        for (int j = 0; j < COLUMNS; j++) {
+            dest[i][j] = source[i][j];
+        }
+    }
+}
+
+void initializeGame(State *game, bool botMode, char botPlayer, char botDifficulty) {
     for (int i = 0; i < ROWS; i++) {
         for (int j = 0; j < COLUMNS; j++) {
             game->grid[i][j] = ' ';
@@ -42,6 +51,7 @@ void initializeGame(State *game, bool botMode, char botPlayer) {
     game->drawnLines = 0;
     game->botMode = botMode;        
     game->botPlayer = botPlayer;   
+    game->botDifficulty = botDifficulty;
 }
 
 bool isValidLine(int x1, int y1, int x2, int y2, char grid[ROWS][COLUMNS]) {
@@ -58,9 +68,7 @@ bool isValidLine(int x1, int y1, int x2, int y2, char grid[ROWS][COLUMNS]) {
         int midRow = (row1 + row2) / 2;
         int midCol = (col1 + col2) / 2;
 
-        if (grid[midRow][midCol] == ' ') {
-            return true;
-        }
+        return grid[midRow][midCol] == ' ';
     }
     return false;
 }
@@ -214,21 +222,17 @@ void displayGrid(State *game) {
     printf("\n");
 }
 
-
 bool makeBotMove(State *game) {
- 
     int maxPossibleMoves = TOTAL_LINES;
     int (*validMoves)[4] = malloc(maxPossibleMoves * sizeof(*validMoves)); 
     int validMoveCount = 0;
     
-    
     for (int x1 = 0; x1 < DOT_ROWS; x1++) {
         for (int y1 = 0; y1 < DOT_COLS; y1++) {
-            
             if (y1 < DOT_COLS - 1) {
                 int x2 = x1;
                 int y2 = y1 + 1;
-                if (isValidLine(x1, y1, x2, y2, game->grid)) {      //for horisontal lines
+                if (isValidLine(x1, y1, x2, y2, game->grid)) {
                     validMoves[validMoveCount][0] = x1;
                     validMoves[validMoveCount][1] = y1;
                     validMoves[validMoveCount][2] = x2;
@@ -237,13 +241,12 @@ bool makeBotMove(State *game) {
                 }
             }
             
-           
             if (x1 < DOT_ROWS - 1) {
                 int x2 = x1 + 1;
                 int y2 = y1;
                 if (isValidLine(x1, y1, x2, y2, game->grid)) {
                     validMoves[validMoveCount][0] = x1;
-                    validMoves[validMoveCount][1] = y1;           //for vertical lines      
+                    validMoves[validMoveCount][1] = y1;      
                     validMoves[validMoveCount][2] = x2;
                     validMoves[validMoveCount][3] = y2;
                     validMoveCount++;
@@ -251,7 +254,6 @@ bool makeBotMove(State *game) {
             }
         }
     }
-    
     
     if (validMoveCount > 0) {
         int randomIndex = rand() % validMoveCount;
@@ -278,11 +280,84 @@ bool makeBotMove(State *game) {
     return false;
 }
 
+bool makeMediumBotMove(State *game) {
+    int maxPossibleMoves = TOTAL_LINES;
+    int (*validMoves)[4] = malloc(maxPossibleMoves * sizeof(*validMoves));
+    int validMoveCount = 0;
+
+    for (int x1 = 0; x1 < DOT_ROWS; x1++) {
+        for (int y1 = 0; y1 < DOT_COLS; y1++) {
+            if (y1 < DOT_COLS - 1) {
+                int x2 = x1, y2 = y1 + 1;
+                if (isValidLine(x1, y1, x2, y2, game->grid)) {
+                    validMoves[validMoveCount][0] = x1;
+                    validMoves[validMoveCount][1] = y1;
+                    validMoves[validMoveCount][2] = x2;
+                    validMoves[validMoveCount][3] = y2;
+                    validMoveCount++;
+                }
+            }
+            if (x1 < DOT_ROWS - 1) {
+                int x2 = x1 + 1, y2 = y1;
+                if (isValidLine(x1, y1, x2, y2, game->grid)) {
+                    validMoves[validMoveCount][0] = x1;
+                    validMoves[validMoveCount][1] = y1;
+                    validMoves[validMoveCount][2] = x2;
+                    validMoves[validMoveCount][3] = y2;
+                    validMoveCount++;
+                }
+            }
+        }
+    }
+
+    if (validMoveCount == 0) {
+        free(validMoves);
+        return false;
+    }
+
+    int *scores = malloc(validMoveCount * sizeof(int));
+    int maxScore = 0;
+    for (int i = 0; i < validMoveCount; i++) {
+        State copy;
+        copyGrid(game->grid, copy.grid);
+        copy.completedBoxes = game->completedBoxes;
+        copy.drawnLines = game->drawnLines;
+
+        int x1 = validMoves[i][0], y1 = validMoves[i][1];
+        int x2 = validMoves[i][2], y2 = validMoves[i][3];
+        placeLine(&copy, x1, y1, x2, y2);
+        int before = copy.completedBoxes;
+        checkForCompletedBoxes(&copy, x1, y1, x2, y2);
+        scores[i] = copy.completedBoxes - before;
+        if (scores[i] > maxScore) maxScore = scores[i];
+    }
+
+    int bestCount = 0;
+    int *bestIndices = malloc(validMoveCount * sizeof(int));
+    for (int i = 0; i < validMoveCount; i++) {
+        if (scores[i] == maxScore) bestIndices[bestCount++] = i;
+    }
+
+    int selected = bestCount > 0 ? bestIndices[rand() % bestCount] : rand() % validMoveCount;
+    int *move = validMoves[selected];
+    printf("Bot (%c) chooses: %d %d %d %d\n", game->currentPlayer, move[0], move[1], move[2], move[3]);
+
+    placeLine(game, move[0], move[1], move[2], move[3]);
+    bool completed = checkForCompletedBoxes(game, move[0], move[1], move[2], move[3]);
+    if (!completed) switchPlayer(game);
+
+    free(validMoves);
+    free(scores);
+    free(bestIndices);
+    return true;
+}
+
 int main() {
     State game;
     int gameMode;
-    char botPlayer;
+    char botPlayer = ' ';
     bool botMode = false;
+    char botDifficulty = 'e';
     
     srand(time(NULL));
     
@@ -294,16 +369,24 @@ int main() {
     
     if (gameMode == 2) {
         botMode = true;
-        printf("Choose who plays first:\n");
+        int choice;
+        
+        printf("Choose bot difficulty:\n");
+        printf("1. Easy\n");
+        printf("2. Medium\n");
+        printf("Select (1-2): ");
+        scanf("%d", &choice);
+        botDifficulty = (choice == 1) ? 'e' : 'm';
+        
+        printf("\nChoose who plays first:\n");
         printf("1. You play as Player A\n");
         printf("2. Bot plays as Player A\n");
         printf("Select (1-2): ");
-        int choice;
         scanf("%d", &choice);
         botPlayer = (choice == 1) ? 'B' : 'A';
     }
     
-    initializeGame(&game, botMode, botPlayer);
+    initializeGame(&game, botMode, botPlayer, botDifficulty);
     
     int x1, y1, x2, y2;
     bool gameRunning = true;
@@ -313,7 +396,11 @@ int main() {
         
         if (game.botMode && game.currentPlayer == game.botPlayer) {
             printf("Bot's turn (Player %c)\n", game.currentPlayer);
-            makeBotMove(&game);
+            if (game.botDifficulty == 'e') {
+                makeBotMove(&game);
+            } else {
+                makeMediumBotMove(&game);
+            }
         } else {
             printf("Player %c's turn\n", game.currentPlayer);
             printf("Enter coordinates (x1 y1 x2 y2): ");
@@ -338,11 +425,11 @@ int main() {
             printf("Final Score: Player A: %d, Player B: %d\n", game.scoreA, game.scoreB);
 
             if (game.scoreA > game.scoreB) {
-                printf("Player A wins!\n");
+                printf("Player A wins!\n\n");
             } else if (game.scoreB > game.scoreA) {
-                printf("Player B wins!\n");
+                printf("Player B wins!\n\n");
             } else {
-                printf("It's a tie!\n");
+                printf("It's a tie!\n\n");
             }
 
             gameRunning = false;
