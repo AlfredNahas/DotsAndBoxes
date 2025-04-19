@@ -2,7 +2,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Build and Run Dots and Boxes",
+            "label": "Build and Run: Game",
             "type": "shell",
             "command": "cmd.exe",
             "args": [
@@ -12,11 +12,28 @@
             "options": {
                 "cwd": "${workspaceFolder}"
             },
-            "problemMatcher": [],
             "group": {
                 "kind": "build",
                 "isDefault": true
-            }
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Build and Run: Test Suite",
+            "type": "shell",
+            "command": "cmd.exe",
+            "args": [
+                "/c",
+                "gcc test_code.c game.c bot.c -o test_code.exe && test_code.exe"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "problemMatcher": []
         }
     ]
 }
