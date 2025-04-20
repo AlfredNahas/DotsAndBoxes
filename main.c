@@ -1,13 +1,33 @@
-
 #include <stdio.h>
 #include "game.h"
 #include "bot.h"
 #include <stdbool.h>
 #include <stdlib.h>
 #include <time.h>
+#include <windows.h>
 
-int main()
-{
+// Structure to pass arguments to the bot thread
+typedef struct {
+    State *game;
+} BotThreadArgs;
+
+// Function executed by the bot thread
+DWORD WINAPI botMoveThread(LPVOID args) {
+    BotThreadArgs *botArgs = (BotThreadArgs *)args;
+    State *game = botArgs->game;
+
+    if (game->botDifficulty == 'e') {
+        makeBotMove(game);
+    } else if (game->botDifficulty == 'm') {
+        makeMediumBotMove(game);
+    } else {
+        makeHardBotMove(game);
+    }
+
+    return 0;
+}
+
+int main() {
     State game;
     int gameMode;
     char botPlayer = ' ';
@@ -22,8 +42,7 @@ int main()
     printf("Select game mode (1-2): ");
     scanf("%d", &gameMode);
 
-    if (gameMode == 2)
-    {
+    if (gameMode == 2) {
         botMode = true;
         int choice;
 
@@ -48,71 +67,55 @@ int main()
         scanf("%d", &choice);
         botPlayer = (choice == 1) ? 'B' : 'A';
     }
-    
+
     initializeGame(&game, botMode, botPlayer, botDifficulty);
 
     int x1, y1, x2, y2;
     bool gameRunning = true;
 
-    while (gameRunning)
-    {
+    HANDLE botThread;
+    DWORD threadId;
+
+    while (gameRunning) {
         displayGrid(&game);
 
-        if (game.botMode && game.currentPlayer == game.botPlayer)
-        {
+        if (game.botMode && game.currentPlayer == game.botPlayer) {
             printf("Bot's turn (Player %c)\n", game.currentPlayer);
-            if (game.botDifficulty == 'e')
-            {
-                makeBotMove(&game);
-            }
-            else if (game.botDifficulty == 'm')
-            {
-                makeMediumBotMove(&game);
-            }
-            else
-            {
-                makeHardBotMove(&game);
-            }
-        }
-        else
-        {
+
+            BotThreadArgs botArgs = {&game};
+            botThread = CreateThread(NULL, 0, botMoveThread, &botArgs, 0, &threadId);
+
+            // Wait for the bot to complete its move
+            WaitForSingleObject(botThread, INFINITE);
+            CloseHandle(botThread);
+        } else {
             printf("Player %c's turn\n", game.currentPlayer);
             printf("Enter coordinates (x1 y1 x2 y2): ");
             scanf("%d %d %d %d", &x1, &y1, &x2, &y2);
 
-            if (isValidLine(x1, y1, x2, y2, game.grid))
-            {
+            if (isValidLine(x1, y1, x2, y2, game.grid)) {
                 placeLine(&game, x1, y1, x2, y2);
 
                 bool boxCompleted = checkForCompletedBoxes(&game, x1, y1, x2, y2);
 
-                if (!boxCompleted)
-                {
+                if (!boxCompleted) {
                     switchPlayer(&game);
                 }
-            }
-            else
-            {
+            } else {
                 printf("Invalid move. Try again.\n");
             }
         }
 
-        if (isGameOver(&game))
-        {
+        if (isGameOver(&game)) {
             displayGrid(&game);
             printf("=== GAME OVER ===\n");
             printf("Final Score: Player A: %d, Player B: %d\n", game.scoreA, game.scoreB);
 
-            if (game.scoreA > game.scoreB)
-            {
+            if (game.scoreA > game.scoreB) {
                 printf("Player A wins!\n\n");
-            }
-            else if (game.scoreB > game.scoreA)
-            {
+            } else if (game.scoreB > game.scoreA) {
                 printf("Player B wins!\n\n");
-            }
-            else
-            {
+            } else {
                 printf("It's a tie!\n\n");
             }
 

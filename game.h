@@ -1,8 +1,8 @@
 #ifndef GAME_H
 #define GAME_H
 
-#include <stdbool.h>
 
+#include <stdbool.h>
 #define ROWS 9
 #define COLUMNS 11
 #define DOT_ROWS ((ROWS / 2) + 1)
@@ -35,4 +35,4 @@ void placeLine(State *game, int x1, int y1, int x2, int y2);
 void displayGrid(State *game);
 
 
-#endif 
+#endif

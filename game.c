@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+
 //Copies contents from source grid to destination grid
 void copyGrid(char source[ROWS][COLUMNS], char dest[ROWS][COLUMNS])
 {
