@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+//Makes a random move for the easy bot, finds all valid moves and select one randomly
 bool makeBotMove(State *game)
 {
     int maxPossibleMoves = TOTAL_LINES;
@@ -69,6 +70,7 @@ bool makeBotMove(State *game)
     return false;
 }
 
+//Makes a smarter move for the medium bot, prioritizes moves that complete boxes and selects the best one
 bool makeMediumBotMove(State *game)
 {
     int maxPossibleMoves = TOTAL_LINES;
@@ -153,7 +155,7 @@ bool makeMediumBotMove(State *game)
     free(bestIndices);
     return true;
 }
-
+//Evaluates board state for minimax algorithm, returns score based on player to optimize the next move
 int evaluateBoard(State *game, char player)
 {
     if (player == 'A')
@@ -166,6 +168,7 @@ int evaluateBoard(State *game, char player)
     }
 }
 
+//Minimax algorithm with alpha-beta pruning to find the best move for the hard bot by looking ahead by several moves
 int minimax(State *game, int depth, bool isMaximizing, char player, int alpha, int beta)
 {
     if (depth == 0 || game->drawnLines >= TOTAL_LINES)
@@ -288,6 +291,7 @@ int minimax(State *game, int depth, bool isMaximizing, char player, int alpha, i
     }
 }
 
+//Makes the best move for the hard bot using the minimax algorithm to evaluate the best possible move and places it on the grid
 bool makeHardBotMove(State *game)
 {
     int maxPossibleMoves = TOTAL_LINES;

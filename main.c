@@ -48,7 +48,7 @@ int main()
         scanf("%d", &choice);
         botPlayer = (choice == 1) ? 'B' : 'A';
     }
-
+    
     initializeGame(&game, botMode, botPlayer, botDifficulty);
 
     int x1, y1, x2, y2;

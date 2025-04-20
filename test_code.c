@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include "game.h"
 #include "bot.h"
+
+//test functions for the game logic and bot moves
 void test_isValidLine() {
 
     char grid[ROWS][COLUMNS];
