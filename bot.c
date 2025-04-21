@@ -51,7 +51,7 @@ bool makeBotMove(State *game)
         int x2 = validMoves[randomIndex][2];
         int y2 = validMoves[randomIndex][3];
 
-        printf("Bot (%c) chooses: %d %d %d %d\n", game->currentPlayer, x1, y1, x2, y2);
+        printf("Easy Bot (%c) chooses: %d %d %d %d\n", game->currentPlayer, x1, y1, x2, y2);
 
         placeLine(game, x1, y1, x2, y2);
 
@@ -143,7 +143,7 @@ bool makeMediumBotMove(State *game)
 
     int selected = bestCount > 0 ? bestIndices[rand() % bestCount] : rand() % validMoveCount;
     int *move = validMoves[selected];
-    printf("Bot (%c) chooses: %d %d %d %d\n", game->currentPlayer, move[0], move[1], move[2], move[3]);
+    printf("Medium Bot (%c) chooses: %d %d %d %d\n", game->currentPlayer, move[0], move[1], move[2], move[3]);
 
     placeLine(game, move[0], move[1], move[2], move[3]);
     bool completed = checkForCompletedBoxes(game, move[0], move[1], move[2], move[3]);
